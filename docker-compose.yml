@@ -9,13 +9,16 @@ services:
       file: common.yml
     environment:
       - LOG_FACILITY=web
+    volumes:
+      - ./config/vhost.conf:/etc/apache2/sites-enabled/000-default.conf:ro
     depends_on:
-      - wamp-server
+      - wamp-router
+      - redis
     ports:
       - "80:80"
 
   # php wamp server
-  router:
+  wamp-router:
     extends:
       service: wamp-service
       file: common.yml
@@ -34,7 +37,9 @@ services:
     entrypoint: /usr/src/app/entrypoints/run_artisan.sh
     command: wamp:queue:work
     depends_on:
-      - wamp-server
+      - wamp-router
+      - redis
+      - mysql
     scale: 2 # depending on the workload
     environment:
       - LOG_FACILITY=dispatcher
@@ -45,6 +50,8 @@ services:
       service: wamp-service
       file: common.yml
     command: /usr/src/app/entrypoints/run_scheduler.sh
+    depends_on:
+      - mysql
     environment:
       - LOG_FACILITY=scheduler
     
