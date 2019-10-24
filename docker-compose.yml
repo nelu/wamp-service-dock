@@ -9,6 +9,8 @@ services:
       file: common.yml
     environment:
       - LOG_FACILITY=web
+    depends_on:
+      - wamp-server
     ports:
       - "80:80"
 
@@ -46,7 +48,7 @@ services:
     environment:
       - LOG_FACILITY=scheduler
     
-# storage        
+  # storage        
   redis:
     image: redis:5.0-alpine3.10
     restart: always
