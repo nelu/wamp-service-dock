@@ -1,0 +1,65 @@
+version: '2.2'
+
+services:
+
+  # apache front
+  web:
+    extends:
+      service: wamp-service
+      file: common.yml
+    environment:
+      - LOG_FACILITY=web
+    ports:
+      - "80:80"
+
+  # php wamp server
+  router:
+    extends:
+      service: wamp-service
+      file: common.yml
+    entrypoint: /usr/src/app/entrypoints/run_artisan.sh
+    command: wamp:router:start
+    environment:
+      - LOG_FACILITY=router
+    expose:
+      - "9901" 
+      
+  # php queue worker
+  message-worker:
+    extends:
+      service: wamp-service
+      file: common.yml
+    entrypoint: /usr/src/app/entrypoints/run_artisan.sh
+    command: wamp:queue:work
+    depends_on:
+      - wamp-server
+    scale: 2 # depending on the workload
+    environment:
+      - LOG_FACILITY=dispatcher
+
+  #  command scheduler
+  scheduler:
+    extends:
+      service: wamp-service
+      file: common.yml
+    command: /usr/src/app/entrypoints/run_scheduler.sh
+    environment:
+      - LOG_FACILITY=scheduler
+    
+# storage        
+  redis:
+    image: redis:5.0-alpine3.10
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-file: '2'
+        max-size: 10m
+        
+  mysql:      
+    image: mariadb:10.2.27-bionic
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: homestead
+        

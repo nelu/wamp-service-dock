@@ -1,0 +1,23 @@
+version: '2.2'
+
+services:
+
+  wamp-service:
+    image: ${SERVICE_IMAGE}
+   # build: https://github.com/nelu/wamp-stream-service.git
+   # build: /media/sf_php/wamp-stream-service
+    restart: always
+    scale: 1 # one is enough
+    env_file:
+      - config/app.env
+    environment:
+      - LOGS_DIR
+    volumes:
+      - ${LOGS_DIR}:/var/log/wamp:rw
+    #  - /media/sf_php/wamp-stream-service:/usr/src/app:rw
+    logging:
+      driver: "json-file"
+      options:
+        max-file: '2'
+        max-size: 10m
+ 
